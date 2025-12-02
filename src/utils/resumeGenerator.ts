@@ -1,4 +1,8 @@
 import { Resume } from '../types/Resume';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle } from 'docx';
+import { saveAs } from 'file-saver';
 
 export const generateResumeHTML = (data: Resume): string => {
   const formatDate = (dateString: string) => {
@@ -316,7 +320,7 @@ export const generateResumeHTML = (data: Resume): string => {
 </html>`;
 };
 
-export const downloadResume = (data: Resume) => {
+export const downloadResumeHTML = (data: Resume) => {
   const html = generateResumeHTML(data);
   const blob = new Blob([html], { type: 'text/html' });
   const url = URL.createObjectURL(blob);
@@ -327,4 +331,333 @@ export const downloadResume = (data: Resume) => {
   link.click();
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
+};
+
+export const downloadResumePDF = async (data: Resume) => {
+  // Create a temporary div with the resume HTML
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = generateResumeHTML(data);
+  tempDiv.style.position = 'absolute';
+  tempDiv.style.left = '-9999px';
+  tempDiv.style.width = '800px';
+  document.body.appendChild(tempDiv);
+
+  try {
+    const canvas = await html2canvas(tempDiv.querySelector('.resume-container') as HTMLElement, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#ffffff'
+    });
+
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    
+    const imgWidth = 210;
+    const pageHeight = 295;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    let heightLeft = imgHeight;
+    let position = 0;
+
+    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+
+    while (heightLeft >= 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+    }
+
+    pdf.save(`${data.personalInfo.fullName.replace(/\s+/g, '_')}_Resume.pdf`);
+  } finally {
+    document.body.removeChild(tempDiv);
+  }
+};
+
+export const downloadResumeWord = async (data: Resume) => {
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '';
+    const date = new Date(dateString + '-01');
+    return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  };
+
+  const groupSkillsByCategory = () => {
+    return data.skills.reduce((acc, skill) => {
+      if (!acc[skill.category]) {
+        acc[skill.category] = [];
+      }
+      acc[skill.category].push(skill);
+      return acc;
+    }, {} as Record<string, typeof data.skills>);
+  };
+
+  const skillsByCategory = groupSkillsByCategory();
+
+  const children = [];
+
+  // Header
+  children.push(
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: data.personalInfo.fullName,
+          bold: true,
+          size: 32,
+          color: '2563EB'
+        })
+      ],
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 200 }
+    })
+  );
+
+  // Contact Info
+  const contactInfo = [
+    data.personalInfo.email,
+    data.personalInfo.phone,
+    data.personalInfo.location,
+    data.personalInfo.linkedin?.replace('https://', ''),
+    data.personalInfo.website?.replace('https://', '')
+  ].filter(Boolean).join(' • ');
+
+  children.push(
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: contactInfo,
+          size: 20
+        })
+      ],
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 400 }
+    })
+  );
+
+  // Professional Summary
+  if (data.summary) {
+    children.push(
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: 'PROFESSIONAL SUMMARY',
+            bold: true,
+            size: 24,
+            color: '2563EB'
+          })
+        ],
+        heading: HeadingLevel.HEADING_2,
+        spacing: { before: 200, after: 200 }
+      }),
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: data.summary,
+            size: 22
+          })
+        ],
+        spacing: { after: 400 }
+      })
+    );
+  }
+
+  // Work Experience
+  if (data.experience.length > 0) {
+    children.push(
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: 'WORK EXPERIENCE',
+            bold: true,
+            size: 24,
+            color: '2563EB'
+          })
+        ],
+        heading: HeadingLevel.HEADING_2,
+        spacing: { before: 200, after: 200 }
+      })
+    );
+
+    data.experience.forEach(exp => {
+      children.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: exp.position,
+              bold: true,
+              size: 22
+            })
+          ],
+          spacing: { before: 200, after: 100 }
+        }),
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: exp.company,
+              bold: true,
+              size: 20,
+              color: '2563EB'
+            })
+          ],
+          spacing: { after: 100 }
+        }),
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: `${formatDate(exp.startDate)} - ${exp.isCurrentRole ? 'Present' : formatDate(exp.endDate)}`,
+              size: 18,
+              italics: true
+            })
+          ],
+          spacing: { after: 200 }
+        })
+      );
+
+      if (exp.description) {
+        children.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: exp.description,
+                size: 20
+              })
+            ],
+            spacing: { after: 200 }
+          })
+        );
+      }
+
+      exp.achievements.filter(ach => ach.trim()).forEach(achievement => {
+        children.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: `• ${achievement}`,
+                size: 20
+              })
+            ],
+            spacing: { after: 100 }
+          })
+        );
+      });
+    });
+  }
+
+  // Education
+  if (data.education.length > 0) {
+    children.push(
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: 'EDUCATION',
+            bold: true,
+            size: 24,
+            color: '2563EB'
+          })
+        ],
+        heading: HeadingLevel.HEADING_2,
+        spacing: { before: 400, after: 200 }
+      })
+    );
+
+    data.education.forEach(edu => {
+      children.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: `${edu.degree} in ${edu.field}`,
+              bold: true,
+              size: 22
+            })
+          ],
+          spacing: { before: 200, after: 100 }
+        }),
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: edu.institution,
+              bold: true,
+              size: 20,
+              color: '2563EB'
+            })
+          ],
+          spacing: { after: 100 }
+        }),
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: `Graduated ${formatDate(edu.graduationDate)}${edu.gpa ? ` • GPA: ${edu.gpa}` : ''}`,
+              size: 18,
+              italics: true
+            })
+          ],
+          spacing: { after: 200 }
+        })
+      );
+    });
+  }
+
+  // Skills
+  if (data.skills.length > 0) {
+    children.push(
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: 'SKILLS',
+            bold: true,
+            size: 24,
+            color: '2563EB'
+          })
+        ],
+        heading: HeadingLevel.HEADING_2,
+        spacing: { before: 400, after: 200 }
+      })
+    );
+
+    Object.entries(skillsByCategory).forEach(([category, skills]) => {
+      children.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: category,
+              bold: true,
+              size: 20
+            })
+          ],
+          spacing: { before: 200, after: 100 }
+        }),
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: skills.map(skill => `${skill.name} (${skill.level})`).join(' • '),
+              size: 20
+            })
+          ],
+          spacing: { after: 200 }
+        })
+      );
+    });
+  }
+
+  const doc = new Document({
+    sections: [{
+      properties: {},
+      children: children
+    }]
+  });
+
+  const buffer = await Packer.toBuffer(doc);
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+  saveAs(blob, `${data.personalInfo.fullName.replace(/\s+/g, '_')}_Resume.docx`);
+};
+
+export const downloadResume = (data: Resume, format: 'html' | 'pdf' | 'word' = 'html') => {
+  switch (format) {
+    case 'pdf':
+      return downloadResumePDF(data);
+    case 'word':
+      return downloadResumeWord(data);
+    default:
+      return downloadResumeHTML(data);
+  }
 };

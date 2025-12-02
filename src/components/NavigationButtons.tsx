@@ -1,5 +1,7 @@
 import React from 'react';
-import { ChevronLeft, ChevronRight, Download, Eye } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Eye } from 'lucide-react';
+import DownloadDropdown from './DownloadDropdown';
+import { Resume } from '../types/Resume';
 
 interface NavigationButtonsProps {
   currentStep: number;
@@ -7,8 +9,8 @@ interface NavigationButtonsProps {
   onPrevious: () => void;
   onNext: () => void;
   onPreview: () => void;
-  onDownload: () => void;
   isFormValid: boolean;
+  resumeData: Resume;
 }
 
 const NavigationButtons: React.FC<NavigationButtonsProps> = ({
@@ -17,8 +19,8 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
   onPrevious,
   onNext,
   onPreview,
-  onDownload,
-  isFormValid
+  isFormValid,
+  resumeData
 }) => {
   const isFirstStep = currentStep === 1;
   const isLastStep = currentStep === totalSteps;
@@ -48,13 +50,7 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
         </button>
 
         {isLastStep && (
-          <button
-            onClick={onDownload}
-            className="flex items-center space-x-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200 shadow-sm hover:shadow-md font-medium"
-          >
-            <Download className="w-4 h-4" />
-            <span>Download Resume</span>
-          </button>
+          <DownloadDropdown data={resumeData} />
         )}
       </div>
 

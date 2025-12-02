@@ -9,7 +9,7 @@ import SkillsForm from './components/forms/SkillsForm';
 import ResumePreview from './components/ResumePreview';
 import NavigationButtons from './components/NavigationButtons';
 import useResumeForm from './hooks/useResumeForm';
-import { downloadResume } from './utils/resumeGenerator';
+import DownloadDropdown from './components/DownloadDropdown';
 
 const STEPS = ['Personal', 'Summary', 'Experience', 'Education', 'Skills'];
 
@@ -74,10 +74,6 @@ function App() {
     setShowPreview(!showPreview);
   };
 
-  const handleDownload = () => {
-    downloadResume(formData);
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -124,8 +120,8 @@ function App() {
               onPrevious={previousStep}
               onNext={nextStep}
               onPreview={handlePreview}
-              onDownload={handleDownload}
               isFormValid={validateCurrentStep()}
+              resumeData={formData}
             />
           </>
         ) : (
@@ -133,12 +129,7 @@ function App() {
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold text-gray-900">Resume Preview</h2>
               <div className="flex items-center space-x-3">
-                <button
-                  onClick={handleDownload}
-                  className="flex items-center space-x-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200 shadow-sm hover:shadow-md font-medium"
-                >
-                  <span>Download Resume</span>
-                </button>
+                <DownloadDropdown data={formData} />
                 <button
                   onClick={handlePreview}
                   className="flex items-center space-x-2 px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-all duration-200 shadow-sm hover:shadow-md font-medium"
