@@ -2,12 +2,184 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="description" content="Create professional resumes in minutes with ResumeAI. AI-powered resume generator with smart templates, real-time preview, and export to PDF/Word. Build your perfect resume today!" />
+    <meta name="keywords" content="resume builder, AI resume generator, professional resume, CV maker, job application, career tools, resume templates" />
+    <meta name="author" content="ResumeAI" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://resumeai.com/" />
+    <meta property="og:title" content="ResumeAI - AI-Powered Professional Resume Generator" />
+    <meta property="og:description" content="Create professional resumes in minutes with ResumeAI. AI-powered resume generator with smart templates, real-time preview, and export to PDF/Word." />
+    <meta property="og:image" content="/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content="ResumeAI" />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://resumeai.com/" />
+    <meta property="twitter:title" content="ResumeAI - AI-Powered Professional Resume Generator" />
+    <meta property="twitter:description" content="Create professional resumes in minutes with ResumeAI. AI-powered resume generator with smart templates, real-time preview, and export to PDF/Word." />
+    <meta property="twitter:image" content="/og-image.png" />
+    
+    <!-- Additional SEO -->
+    <meta name="robots" content="index, follow" />
+    <meta name="googlebot" content="index, follow" />
+    <link rel="canonical" href="https://resumeai.com/" />
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "ResumeAI",
+      "description": "AI-powered professional resume generator that helps users create stunning resumes with smart templates, real-time preview, and multiple export formats.",
+      "url": "https://resumeai.com",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web Browser",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "creator": {
+        "@type": "Organization",
+        "name": "ResumeAI"
+      },
+      "featureList": [
+        "AI-powered content generation",
+        "Professional resume templates",
+        "Real-time preview",
+        "PDF and Word export",
+        "Step-by-step guidance",
+        "Mobile responsive design"
+      ],
+      "screenshot": "/og-image.png",
+      "softwareVersion": "1.0",
+      "datePublished": "2025-01-27",
+      "inLanguage": "en-US"
+    }
+    </script>
+    
     <title>ResumeAI</title>
+    
+    <style>
+      /* Loading screen styles */
+      #loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        transition: opacity 0.5s ease-out;
+      }
+      
+      #loading-screen.fade-out {
+        opacity: 0;
+        pointer-events: none;
+      }
+      
+      .loading-logo {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #2563eb, #7c3aed);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 24px;
+        animation: pulse 2s ease-in-out infinite;
+      }
+      
+      .loading-text {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-size: 24px;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 8px;
+      }
+      
+      .loading-subtitle {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-size: 16px;
+        color: #6b7280;
+        margin-bottom: 32px;
+      }
+      
+      .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid #e5e7eb;
+        border-top: 3px solid #2563eb;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      
+      @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      /* Hide main content initially */
+      #root {
+        opacity: 0;
+        transition: opacity 0.5s ease-in;
+      }
+      
+      #root.loaded {
+        opacity: 1;
+      }
+    </style>
   </head>
   <body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+      <div class="loading-logo">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="white"/>
+          <polyline points="14,2 14,8 20,8" fill="white"/>
+          <line x1="16" y1="13" x2="8" y2="13" stroke="#2563eb" stroke-width="1.5"/>
+          <line x1="16" y1="17" x2="8" y2="17" stroke="#2563eb" stroke-width="1.5"/>
+          <polyline points="10,9 9,9 8,9" stroke="#2563eb" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="loading-text">ResumeAI</div>
+      <div class="loading-subtitle">AI-Powered Resume Generator</div>
+      <div class="loading-spinner"></div>
+    </div>
+    
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <script>
+      // Hide loading screen when app is ready
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          const loadingScreen = document.getElementById('loading-screen');
+          const root = document.getElementById('root');
+          
+          loadingScreen.classList.add('fade-out');
+          root.classList.add('loaded');
+          
+          setTimeout(function() {
+            loadingScreen.style.display = 'none';
+          }, 500);
+        }, 1000); // Show loading for at least 1 second
+      });
+    </script>
   </body>
 </html>
