@@ -44,3 +44,13 @@ export interface Resume {
 export interface ResumeFormData extends Resume {
   currentStep: number;
 }
+
+export interface ValidationError {
+  field: string;
+  message: string;
+}
+
+export interface ValidationResult {
+  isValid: boolean;
+  errors: ValidationError[];
+}

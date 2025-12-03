@@ -1,12 +1,16 @@
 import React from 'react';
-import { FileText, Sparkles } from 'lucide-react';
+import { FileText, Sparkles, AlertCircle } from 'lucide-react';
 
 interface SummaryFormProps {
   data: string;
   onChange: (data: string) => void;
+  getFieldError?: (fieldName: string) => { field: string; message: string } | undefined;
 }
 
-const SummaryForm: React.FC<SummaryFormProps> = ({ data, onChange }) => {
+const SummaryForm: React.FC<SummaryFormProps> = ({ data, onChange, getFieldError }) => {
+  const error = getFieldError?.('summary');
+  const hasError = !!error;
+
   const generateAISummary = () => {
     const samples = [
       "Experienced software engineer with 5+ years developing scalable web applications using React, Node.js, and cloud technologies. Proven track record of leading cross-functional teams and delivering high-quality solutions that drive business growth and improve user experience.",
@@ -42,21 +46,31 @@ const SummaryForm: React.FC<SummaryFormProps> = ({ data, onChange }) => {
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Professional Summary *
+          Professional Summary <span className="text-red-500">*</span>
         </label>
         <textarea
           value={data}
           onChange={(e) => onChange(e.target.value)}
           rows={6}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
+          className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:border-transparent transition-all duration-200 resize-none ${
+            hasError
+              ? 'border-red-300 focus:ring-red-500 bg-red-50'
+              : 'border-gray-300 focus:ring-blue-500'
+          }`}
           placeholder="Write a compelling 2-3 sentence summary that highlights your key skills, experience, and career achievements. Focus on what makes you unique and valuable to potential employers."
           required
         />
+        {hasError && (
+          <p className="mt-1 text-sm text-red-600 flex items-center">
+            <AlertCircle className="w-4 h-4 mr-1" />
+            {error.message}
+          </p>
+        )}
         <div className="flex justify-between items-center mt-2">
           <p className="text-xs text-gray-500">
-            Tip: Keep it concise but impactful. Aim for 2-3 sentences.
+            Tip: Keep it concise but impactful. Aim for 50-500 characters.
           </p>
-          <span className="text-xs text-gray-400">
+          <span className={`text-xs ${data.length > 500 ? 'text-red-500' : 'text-gray-400'}`}>
             {data.length}/500 characters
           </span>
         </div>

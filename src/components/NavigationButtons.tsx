@@ -1,7 +1,7 @@
 import React from 'react';
-import { ChevronLeft, ChevronRight, Eye } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Eye, AlertCircle } from 'lucide-react';
 import DownloadDropdown from './DownloadDropdown';
-import { Resume } from '../types/Resume';
+import { Resume, ValidationResult } from '../types/Resume';
 
 interface NavigationButtonsProps {
   currentStep: number;
@@ -9,7 +9,7 @@ interface NavigationButtonsProps {
   onPrevious: () => void;
   onNext: () => void;
   onPreview: () => void;
-  isFormValid: boolean;
+  validationResult: ValidationResult;
   resumeData: Resume;
 }
 
@@ -19,14 +19,34 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
   onPrevious,
   onNext,
   onPreview,
-  isFormValid,
+  validationResult,
   resumeData
 }) => {
   const isFirstStep = currentStep === 1;
   const isLastStep = currentStep === totalSteps;
 
   return (
-    <div className="flex items-center justify-between p-6 bg-white border-t border-gray-200">
+    <div className="bg-white border-t border-gray-200">
+      {!validationResult.isValid && (
+        <div className="px-6 py-3 bg-red-50 border-b border-red-200">
+          <div className="flex items-center space-x-2 text-red-700">
+            <AlertCircle className="w-5 h-5" />
+            <span className="text-sm font-medium">
+              Please fix the following errors before continuing:
+            </span>
+          </div>
+          <ul className="mt-2 text-sm text-red-600 space-y-1">
+            {validationResult.errors.map((error, index) => (
+              <li key={index} className="flex items-center space-x-1">
+                <span>•</span>
+                <span>{error.message}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      
+      <div className="flex items-center justify-between p-6">
       <button
         onClick={onPrevious}
         disabled={isFirstStep}
@@ -56,9 +76,9 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
 
       <button
         onClick={onNext}
-        disabled={isLastStep || !isFormValid}
+        disabled={isLastStep || !validationResult.isValid}
         className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
-          isLastStep || !isFormValid
+          isLastStep || !validationResult.isValid
             ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
             : 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm hover:shadow-md'
         }`}
@@ -66,6 +86,7 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
         <span>Next</span>
         <ChevronRight className="w-4 h-4" />
       </button>
+    </div>
     </div>
   );
 };

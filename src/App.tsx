@@ -16,6 +16,7 @@ const STEPS = ['Personal', 'Summary', 'Experience', 'Education', 'Skills'];
 function App() {
   const {
     formData,
+    validationErrors,
     updatePersonalInfo,
     updateSummary,
     updateExperience,
@@ -23,7 +24,8 @@ function App() {
     updateSkills,
     nextStep,
     previousStep,
-    validateCurrentStep
+    validateCurrentStep,
+    getFieldError
   } = useResumeForm();
 
   const [showPreview, setShowPreview] = useState(false);
@@ -35,6 +37,7 @@ function App() {
           <PersonalInfoForm
             data={formData.personalInfo}
             onChange={updatePersonalInfo}
+            getFieldError={getFieldError}
           />
         );
       case 2:
@@ -42,6 +45,7 @@ function App() {
           <SummaryForm
             data={formData.summary}
             onChange={updateSummary}
+            getFieldError={getFieldError}
           />
         );
       case 3:
@@ -120,7 +124,7 @@ function App() {
               onPrevious={previousStep}
               onNext={nextStep}
               onPreview={handlePreview}
-              isFormValid={validateCurrentStep()}
+              validationResult={validationErrors.isValid ? validateCurrentStep() : validationErrors}
               resumeData={formData}
             />
           </>

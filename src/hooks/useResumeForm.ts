@@ -1,5 +1,12 @@
 import { useState } from 'react';
-import { ResumeFormData } from '../types/Resume';
+import { ResumeFormData, ValidationResult } from '../types/Resume';
+import { 
+  validatePersonalInfo, 
+  validateSummary, 
+  validateExperience, 
+  validateEducation, 
+  validateSkills 
+} from '../utils/validation';
 
 const useResumeForm = () => {
   const [formData, setFormData] = useState<ResumeFormData>({
@@ -34,60 +41,86 @@ const useResumeForm = () => {
     skills: []
   });
 
+  const [validationErrors, setValidationErrors] = useState<ValidationResult>({
+    isValid: true,
+    errors: []
+  });
+
   const updatePersonalInfo = (personalInfo: typeof formData.personalInfo) => {
     setFormData(prev => ({ ...prev, personalInfo }));
+    // Clear validation errors when user starts typing
+    if (validationErrors.errors.some(error => error.field.startsWith('personalInfo') || ['fullName', 'email', 'phone', 'location', 'linkedin', 'website'].includes(error.field))) {
+      setValidationErrors({ isValid: true, errors: [] });
+    }
   };
 
   const updateSummary = (summary: string) => {
     setFormData(prev => ({ ...prev, summary }));
+    if (validationErrors.errors.some(error => error.field === 'summary')) {
+      setValidationErrors({ isValid: true, errors: [] });
+    }
   };
 
   const updateExperience = (experience: typeof formData.experience) => {
     setFormData(prev => ({ ...prev, experience }));
+    if (validationErrors.errors.some(error => error.field.startsWith('experience'))) {
+      setValidationErrors({ isValid: true, errors: [] });
+    }
   };
 
   const updateEducation = (education: typeof formData.education) => {
     setFormData(prev => ({ ...prev, education }));
+    if (validationErrors.errors.some(error => error.field.startsWith('education'))) {
+      setValidationErrors({ isValid: true, errors: [] });
+    }
   };
 
   const updateSkills = (skills: typeof formData.skills) => {
     setFormData(prev => ({ ...prev, skills }));
+    if (validationErrors.errors.some(error => error.field.startsWith('skills'))) {
+      setValidationErrors({ isValid: true, errors: [] });
+    }
   };
 
   const nextStep = () => {
-    setFormData(prev => ({ ...prev, currentStep: prev.currentStep + 1 }));
+    const validation = validateCurrentStep();
+    if (validation.isValid) {
+      setFormData(prev => ({ ...prev, currentStep: prev.currentStep + 1 }));
+      setValidationErrors({ isValid: true, errors: [] });
+    } else {
+      setValidationErrors(validation);
+    }
   };
 
   const previousStep = () => {
     setFormData(prev => ({ ...prev, currentStep: prev.currentStep - 1 }));
+    setValidationErrors({ isValid: true, errors: [] });
   };
 
-  const validateCurrentStep = () => {
+  const validateCurrentStep = (): ValidationResult => {
     switch (formData.currentStep) {
       case 1:
-        return !!(formData.personalInfo.fullName && 
-                 formData.personalInfo.email && 
-                 formData.personalInfo.phone && 
-                 formData.personalInfo.location);
+        return validatePersonalInfo(formData.personalInfo);
       case 2:
-        return !!formData.summary.trim();
+        return validateSummary(formData.summary);
       case 3:
-        return formData.experience.every(exp => 
-          exp.company && exp.position && exp.startDate
-        );
+        return validateExperience(formData.experience);
       case 4:
-        return formData.education.every(edu => 
-          edu.institution && edu.degree && edu.field && edu.graduationDate
-        );
+        return validateEducation(formData.education);
       case 5:
-        return true; // Skills are optional
+        return validateSkills(formData.skills);
       default:
-        return true;
+        return { isValid: true, errors: [] };
     }
+  };
+
+  const getFieldError = (fieldName: string) => {
+    return validationErrors.errors.find(error => error.field === fieldName);
   };
 
   return {
     formData,
+    validationErrors,
     updatePersonalInfo,
     updateSummary,
     updateExperience,
@@ -95,7 +128,8 @@ const useResumeForm = () => {
     updateSkills,
     nextStep,
     previousStep,
-    validateCurrentStep
+    validateCurrentStep,
+    getFieldError
   };
 };
 
